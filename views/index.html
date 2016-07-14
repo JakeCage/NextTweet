@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>NextTweet - Innovation Project</title>
+    <meta charset="utf-8" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+    <script src="//code.jquery.com/jquery-1.10.2.js"></script>
+    <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+
+    <script src="http://cdn.leafletjs.com/leaflet-0.7/leaflet.js"></script>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7/leaflet.css"/>
+    <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+    <script>
+        $(function() {
+            $( "#datepicker" ).datepicker({showOn: 'button', dateFormat: 'D M dd yy',
+                buttonText: '<i class="glyphicon glyphicon-calendar"></i>'});
+        });
+    </script>
+
+</head>
+<body>
+
+
+            <div id="map" class="col-sm-8 col-md-10"></div>
+
+
+
+    <select id="locat" class="col-sm-4 col-xs-4 col-md-2 btn btn-primary dropdown-toggle" onchange="changeLocation()">
+        <option value="noMA">Select a Management Area</option>
+        <option value="WD">WD</option>
+        <option value="CD">CD</option>
+        <option value="BR">BR</option>
+        <option value="WB">WB</option>
+        <option value="TC">TC</option>
+        <option value="NA">NA</option>
+        <option value="TB">TB</option>
+        <option value="NB">NB</option>
+        <option value="SD">SD</option>
+        <option value="BV">BV</option>
+        <option value="ND">ND</option>
+        <option value="MS">MS</option>
+        <option value="CF">CF</option>
+        <option value="SB">CF</option>
+        <option value="CB">CB</option>
+        <option value="NF">NF</option>
+    </select>
+
+<script src="scripts/nextgridlatlong.js"></script>
+            <script src="scripts/drawMap.js"></script>
+            <script src="scripts/getTweets.js"></script>
+<script src="scripts/functionality.js"></script>
+
+    <p class="col-md-2 col-sm-4 col-xs-8"><input type="text" class="col-xs-9" id="datepicker" onchange="filterByDate(this.value)"></p>
+<h2 class="feedTitle scroll col-md-2 col-sm-4 col-xs-12" style="text-align: center;">Tweet Feed</h2>
+<div id="feed" class="scroll col-md-2 col-sm-4 col-xs-12" style="height: 536px; border-style: solid; border-width: 3px; background-color: #337ab7; color: white; border-color: #2e6da4; overflow: scroll"><hr>
+</div>
+
+
+</body>
+</html>

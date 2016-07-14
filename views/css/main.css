@@ -1,0 +1,8 @@
+#map {
+    height: 100vh;
+    border: 2px solid #2e6da4;
+    outline-style: outset;
+}
+#locat{
+    border-radius: 0px;
+}

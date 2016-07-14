@@ -1,0 +1,27 @@
+[ERR!] cwd  : C:\src\NodeJS Projects\Twit
+[ERR!] os   : Windows_NT 6.1.7601
+[ERR!] argv : "C:\\Program Files\\nodejs\\node.exe" "C:\\Users\\cxs0w3k\\AppData\\Roaming\\npm\\node_modules\\tsd\\build\\cli.js" "install" "body-parser" "cookie-parser" "debug" "express" "jade" "morgan" "serve-favicon" "--save"
+[ERR!] node : v4.2.6
+[ERR!] tsd  : 0.6.5
+[ERR!] Error: connect ETIMEDOUT 192.30.253.116:443
+[ERR!] CODE : ETIMEDOUT
+[ERR!] connect ETIMEDOUT 192.30.253.116:443
+This is most likely not a problem with tsd itself
+and is related to network connectivity.
+In most cases you are behind a proxy or have bad network settings.
+
+If you are behind a proxy, please make sure that the
+'proxy' config is set properly.  See: https://github.com/DefinitelyTyped/tsd#tsdrc
+[ERR!] 
+Error: connect ETIMEDOUT 192.30.253.116:443
+    at Object.exports._errnoException (util.js:870:11)
+    at exports._exceptionWithHostPort (util.js:893:20)
+    at TCPConnectWrap.afterConnect [as oncomplete] (net.js:1063:14)
+
+[ERR!] tsd.json could not be retrieved
+
+[ERR!] .tsdrc could not be retrieved
+
+[ERR!] Please include the following file with any support request:
+    C:\src\NodeJS Projects\Twit\tsd-debug.log
+
