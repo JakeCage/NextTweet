@@ -9,19 +9,13 @@ var bodyParser = require('body-parser');
 var Twit = require('twit');
 var routes = require('./routes/index');
 var users = require('./routes/users');
-
+var config = require('./config');
 
 
 
 var app = express();
 
-var T = new Twit({
-  consumer_key:         'GEAHg7AuAHqNx9No2WxOdxigJ',
-  consumer_secret:      'duCJOP3gOjQRDNSiwvpJU5bSFZMd0FelZUfMnY4npCIYFN4Y8R',
-  access_token:         '1330589587-0gI7cBYq52qWyjsN80v80P5QuUNsiNXfO4dYEci',
-  access_token_secret:  'bDQS5g09MijdbbU37AuMTqMO1GVrZ1IxL1Zdc0Q74s9Bm',
-  timeout_ms:           60*1000,  // optional HTTP request timeout to apply to all requests.
-});
+var T = new Twit(config.oauth);
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -40,15 +34,13 @@ app.use(express.static(path.join(__dirname, 'views')));
 app.use('/', routes);
 app.use('/users', users);
 
-
-
 // Put REST methods here
 var filteredOpinions = {statuses:[]};
 var filteredWeather = {statuses:[]};
 var filteredCrime = {statuses:[]};
 var filteredTraffic= {statuses:[]};
 
-var lbboxs = [[25.729359358661515,-80.48455143735303, "75mi"],
+var rbboxs = [[25.729359358661515,-80.48455143735303, "75mi"],
     [25.666953112123483,-80.28453463828114, "75mi"],
     [26.299663514132654,-80.94963442651449, "75mi"],
     [26.55513561091615,-80.49477386697342, "75mi"],
@@ -64,97 +56,97 @@ var lbboxs = [[25.729359358661515,-80.48455143735303, "75mi"],
     [25.935904020813314,-80.45838267262246, "75mi"],
     [26.04416504125394,-80.3463181829615, "75mi"],
     [29.38248398746543,-83.0779053469171, "75mi"]];
-var rbboxs = [[25.729359358661515,-80.48455143735303, "350mi"],
-    [25.666953112123483,-80.28453463828114, "350mi"],
-    [26.299663514132654,-80.94963442651449, "350mi"],
-    [26.55513561091615,-80.49477386697342, "350mi"],
-    [26.94421126204889,-81.15039957517484, "350mi"],
-    [25.96585913168237,-82.01287898290927, "350mi"],
-    [26.548272332224304,-82.4274750451799, "350mi"],
-    [26.152956427935948,-80.31619938868972, "350mi"],
-    [25.13614272397523,-80.977022490546, "350mi"],
-    [27.81978815131019,-80.99802467106086, "350mi"],
-    [25.84664979901018,-80.35029514913889, "350mi"],
-    [27.021307658272,-82.74458364012996, "350mi"],
-    [28.609485290365676,-81.41873793904917, "350mi"],
-    [25.935904020813314,-80.45838267262246, "350mi"],
-    [26.04416504125394,-80.3463181829615, "350mi"],
-    [29.38248398746543,-83.0779053469171, "350mi"]];
 
 var iterOpinion = 0;
 var iterWeather = 0;
 var iterCrime = 0;
 var iterTraffic = 0;
-var lbboxsLen = lbboxs.length;
+var rbboxsLen = rbboxs.length;
 
 var opinionInterval = setInterval(function(){
-    T.get('search/tweets', { q: 'fpl power OR solar OR energy OR outage', count: 100, geocode: lbboxs[iterOpinion]},
+    T.get('search/tweets', { q: 'fpl power OR solar OR energy OR outage', count: 100, geocode: rbboxs[iterOpinion]},
         function(err, data, response) {
+            //concat opinions with coordinates
+            data.statuses = data.statuses.map(function(tweet){
+                tweet.coordinates = randomPointInBounds(rbboxs[iterOpinion],bboxflorida);
+                return tweet;
+            });
             filteredOpinions.statuses = filteredOpinions.statuses.concat(data.statuses);
-            filteredOpinions.statuses = remove_duplicates(filteredOpinions.statuses);
             iterOpinion += 1;
-            if(iterOpinion == lbboxsLen-1){
+            if(iterOpinion == rbboxsLen-1){
+                filteredOpinions.statuses = removeDuplicates(filteredOpinions.statuses);
                 console.log("Opinions data is complete.");
                 clearInterval(opinionInterval);}
         });
 
-    },1500);
+    },config.intervalTime);
 var weatherInterval = setInterval(function(){
 
         T.get('search/tweets', { q: 'florida storm OR lightning OR thunder OR rain', count: 100, geocode: rbboxs[iterWeather] }, function(err, data, response) {
+            data.statuses = data.statuses.map(function(tweet){
+                tweet.coordinates = randomPointInBounds(rbboxs[iterWeather],bboxfloridaAll);
+                return tweet;
+            });
             filteredWeather.statuses = filteredWeather.statuses.concat(data.statuses);
-            filteredWeather.statuses = remove_duplicates(filteredWeather.statuses);
             iterWeather += 1;
-            if(iterWeather == lbboxsLen-1){
+            if(iterWeather == rbboxsLen-1){
+                filteredWeather.statuses = removeDuplicates(filteredWeather.statuses);
                 console.log("Weather data is complete.");
                 clearInterval(weatherInterval);
             }
         });
 
-},1500);
+},config.intervalTime);
 var crimeInterval = setInterval(function(){
 
     T.get('search/tweets', { q: 'florida crime OR burglary OR shooting OR fire OR robbery', count: 100, geocode: rbboxs[iterCrime] }, function(err, data, response) {
+        data.statuses = data.statuses.map(function(tweet){
+            tweet.coordinates = randomPointInBounds(rbboxs[iterCrime],bboxfloridaAll);
+            return tweet;
+        });
         filteredCrime.statuses = filteredCrime.statuses.concat(data.statuses);
-        filteredCrime.statuses = remove_duplicates(filteredCrime.statuses);
         iterCrime += 1;
-        if(iterCrime == lbboxsLen-1){
+        if(iterCrime == rbboxsLen-1){
+            filteredCrime.statuses = removeDuplicates(filteredCrime.statuse);
             console.log("Crime data is complete.");
             clearInterval(crimeInterval);
         }
     });
 
-},1500);
+},config.intervalTime);
 var trafficInterval = setInterval(function(){
 
     T.get('search/tweets', { q: 'florida traffic OR crash OR car OR blocked', count: 100, geocode: rbboxs[iterTraffic] }, function(err, data, response) {
+        data.statuses = data.statuses.map(function(tweet){
+            tweet.coordinates = randomPointInBounds(rbboxs[iterTraffic],bboxfloridaAll);
+            return tweet;
+        });
         filteredTraffic.statuses = filteredTraffic.statuses.concat(data.statuses);
-        filteredTraffic.statuses = remove_duplicates(filteredTraffic.statuses);
         iterTraffic += 1;
-        if(iterTraffic == lbboxsLen-1){
+        if(iterTraffic == rbboxsLen-1){
+            filteredTraffic.statuses = removeDuplicates(filteredTraffic.statuses);
             console.log("Traffic data is complete.");
             clearInterval(trafficInterval);
         }
     });
 
-},1500);
+},config.intervalTime);
 
-function remove_duplicates(objectsArray) {
-    var usedObjects = {};
-
-    for (var i=objectsArray.length - 1;i>=0;i--) {
-        var so = JSON.stringify(objectsArray[i]);
-
-        if (usedObjects[so]) {
-            objectsArray.splice(i, 1);
-
-        } else {
-            usedObjects[so] = true;
-        }
+function removeDuplicates(arr) {
+    var new_arr = [];
+    var lookup  = {};
+    //Loop through each object and assign it the unique code
+    for (var i in arr) {
+        lookup[arr[i]["id_str"]] = arr[i];
     }
 
-    return objectsArray;
+    //There can not be two objects with the same unique key
+    //It will overwrite the same object rather than creating a new one
+    for (i in lookup) {
+        new_arr.push(lookup[i]);
+    }
 
+    return new_arr;
 }
 
 function isMarkerInsideBounds(marker, polyPoints) {
@@ -179,10 +171,10 @@ var bboxflorida = [{"lat":25.520136064403477,"lng":-80.518798828125},{"lat":25.4
 var boundsflorida = {"_southWest":{"lat":25.45319497952487,"lng":-82.45788574218749},"_northEast":{"lat":30.099989515377835,"lng":-80.07110595703125}};
 
 function randomPointInBounds(bounds, bbox) {
-    var x_min  = bounds._northEast.lng;
-    var x_max  = bounds._southWest.lng;
-    var y_min  = bounds._southWest.lat;
-    var y_max  = bounds._northEast.lat;
+    var x_min  = bounds[1]+1.2;//+ lng east
+    var x_max  = bounds[1]-1.2;//- lng west
+    var y_min  = bounds[0]-1.2;//- lat south
+    var y_max  = bounds[0]+1.2;//+ lat north
 
     var lat = y_min + (Math.random() * (y_max - y_min));
     var lng = x_min + (Math.random() * (x_max - x_min));
@@ -196,67 +188,15 @@ function randomPointInBounds(bounds, bbox) {
 }
 
 app.get('/opinions', function (req, res) {
-    if(filteredOpinions.statuses[0].coordinates == null && iterOpinion == lbboxsLen-1){
-    filteredOpinions.statuses = filteredOpinions.statuses.map(function(tweet){
-        tweet.coordinates = randomPointInBounds(boundsflorida,bboxflorida);
-        return tweet;
-    });
-        console.log("Coordinates set.");
-    }
-    else if(filteredOpinions.statuses[0].coordinates != null && iterOpinion == lbboxsLen-1){
-        console.log("Coordinates are already set.");
-    }
-    else{
-        console.log("Opinions data is incomplete");
-    }
     res.json(filteredOpinions);
 });
 app.get('/weather', function (req, res) {
-    if(filteredWeather.statuses[0].coordinates == null && iterWeather == lbboxsLen-1){
-        filteredWeather.statuses = filteredWeather.statuses.map(function(tweet){
-            tweet.coordinates = randomPointInBounds(boundsfloridaAll,bboxfloridaAll);
-            return tweet;
-        });
-        console.log("Coordinates set.");
-    }
-    else if(filteredWeather.statuses[0].coordinates != null && iterWeather == lbboxsLen-1){
-        console.log("Coordinates are already set.");
-    }
-    else{
-        console.log("Weather data is incomplete");
-    }
     res.json(filteredWeather);
 });
 app.get('/crime', function (req, res) {
-    if(filteredCrime.statuses[0].coordinates == null && iterCrime == lbboxsLen-1){
-        filteredCrime.statuses = filteredCrime.statuses.map(function(tweet){
-            tweet.coordinates = randomPointInBounds(boundsfloridaAll,bboxfloridaAll);
-            return tweet;
-        });
-        console.log("Coordinates set.");
-    }
-    else if(filteredCrime.statuses[0].coordinates != null && iterCrime == lbboxsLen-1){
-        console.log("Coordinates are already set.");
-    }
-    else{
-        console.log("Crime data is incomplete");
-    }
     res.json(filteredCrime);
 });
 app.get('/traffic', function (req, res) {
-    if(filteredTraffic.statuses[0].coordinates == null && iterTraffic == lbboxsLen-1){
-        filteredTraffic.statuses = filteredTraffic.statuses.map(function(tweet){
-            tweet.coordinates = randomPointInBounds(boundsfloridaAll,bboxfloridaAll);
-            return tweet;
-        });
-        console.log("Coordinates set.");
-    }
-    else if(filteredTraffic.statuses[0].coordinates != null && iterTraffic == lbboxsLen-1){
-        console.log("Coordinates are already set.");
-    }
-    else{
-        console.log("Traffic data is incomplete");
-    }
     res.json(filteredTraffic);
 });
 
@@ -291,9 +231,9 @@ app.use(function(err, req, res, next) {
     error: {}
   });
 });
-
-app.listen(3000);
-console.log("Twit running.");
+app.listen(config.port);
+console.log("================================================================");
+console.log("= NextTweet web server/service is running on port: " + config.port);
+console.log("================================================================");
 
 module.exports = app;
-
